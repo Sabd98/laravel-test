@@ -15,11 +15,23 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'manager', 'staff']);
+            $table->enum('role', ['admin', 'manager', 'staff'])->default('staff');
             $table->boolean('status')->default(true);
+            $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
+
+            // Indexes
+            $table->index('role');
+            $table->index('status');
+            $table->index('created_at');
         });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('users');
     }
 };

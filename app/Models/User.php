@@ -4,17 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\UserRoleEnum;
+use App\Enums\UserRoleEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\HasUuid;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory;
-
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasApiTokens, HasFactory, Notifiable, HasUuid;
 
     protected $fillable = [
         'name',
@@ -24,19 +24,46 @@ class User extends Authenticatable
         'status'
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected $casts = [
+        'email_verified_at' => 'datetime',
+        'role' => UserRoleEnum::class,
         'status' => 'boolean',
-        'role' => UserRoleEnum::class
     ];
 
     // Relationships
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
     public function createdTasks()
     {
         return $this->hasMany(Task::class, 'created_by');
     }
 
-    public function assignedTasks()
+    public function activityLogs()
     {
-        return $this->hasMany(Task::class, 'assigned_to');
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    // Helpers
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRoleEnum::ADMIN;
+    }
+
+    public function isManager(): bool
+    {
+        return $this->role === UserRoleEnum::MANAGER;
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role === UserRoleEnum::STAFF;
     }
 }

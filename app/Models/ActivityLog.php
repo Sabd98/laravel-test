@@ -1,26 +1,34 @@
 <?php
-// app/Models/ActivityLog.php
+
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
-use HasFactory;
+    use HasFactory, HasUuid;
 
-protected $keyType = 'string';
-public $incrementing = false;
+    protected $fillable = [
+        'user_id',
+        'action',
+        'description'
+    ];
 
-protected $fillable = [
-'user_id',
-'action',
-'description',
-'logged_at'
-];
+    // Relationships
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-public function user()
-{
-return $this->belongsTo(User::class);
-}
+    // Helpers
+    public static function logAction(User $user, string $action, string $description): void
+    {
+        self::create([
+            'user_id' => $user->id,
+            'action' => $action,
+            'description' => $description
+        ]);
+    }
 }

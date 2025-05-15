@@ -11,11 +11,25 @@ return new class extends Migration
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('user_id');
-            $table->string('action');
+            $table->string('action', 50);
             $table->text('description');
-            $table->datetime('logged_at');
+            $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // Foreign Key
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade')
+                ->onUpdate('cascade');
+
+            // Indexes
+            $table->index('action');
+            $table->index('created_at');
         });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('activity_logs');
     }
 };
